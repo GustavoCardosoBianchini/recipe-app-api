@@ -9,4 +9,27 @@ services:
     volumes:
       - "./app:/app"
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
+      sh -c " python manage.py wait_for_db && 
+              python manage.py migrate && 
+              python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=changeme
+    depends_on: # defini que precisamos esperar iniciar o banco antes de iniciar o app
+      - db
+
+  db:
+    image: postgres:13-alpine
+    # segundo cria o volume no container do banco
+    volumes:
+      - dev-db-data:/var/lib/postgres/data # coloque o caminho onde vai ficar salvo o volume
+    environment: #pode definir variaveis de ambiente
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=changeme
+
+# primeiro cria o volume
+volumes:
+  dev-db-data:
